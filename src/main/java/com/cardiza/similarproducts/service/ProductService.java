@@ -6,6 +6,8 @@ import com.cardiza.similarproducts.dto.ProductDetail;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -20,16 +22,25 @@ public class ProductService {
     }
 
     public List<ProductDetail> getSimilarProducts(String productId) {
-        List<String> ids = similarClient.getSimilarIds(productId);
+
+        List<String> ids = Optional.ofNullable(similarClient.getSimilarIds(productId))
+                .orElseGet(List::of);
+
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
         return ids.stream()
-                .map(id -> {
-                    try {
-                        return productClient.getProduct(id);
-                    } catch (Exception e) {
-                        return null;
-                    }
-                })
-                .filter(java.util.Objects::nonNull)
+                .map(this::safeGetProduct)
+                .filter(Objects::nonNull)
                 .toList();
+    }
+
+    private ProductDetail safeGetProduct(String id) {
+        try {
+            return productClient.getProduct(id);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
