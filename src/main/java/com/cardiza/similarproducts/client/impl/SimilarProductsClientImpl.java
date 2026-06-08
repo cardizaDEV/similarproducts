@@ -19,7 +19,6 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
 
     @Override
     public List<String> getSimilarIds(String productId) {
-
         return productWebClient.get()
                 .uri(uriBuilder ->
                              uriBuilder

@@ -20,9 +20,7 @@ public class ProductService {
     }
 
     public List<ProductDetail> getSimilarProducts(String productId) {
-
         List<String> ids = similarClient.getSimilarIds(productId);
-
         return ids.stream()
                 .map(id -> {
                     try {

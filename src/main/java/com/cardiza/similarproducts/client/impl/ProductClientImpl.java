@@ -18,7 +18,6 @@ public class ProductClientImpl implements ProductClient {
 
     @Override
     public ProductDetail getProduct(String productId) {
-
         return productWebClient.get()
                 .uri(uriBuilder ->
                              uriBuilder
