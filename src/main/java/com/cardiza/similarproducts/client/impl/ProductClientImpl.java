@@ -6,6 +6,8 @@ import com.cardiza.similarproducts.dto.ProductDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
@@ -26,7 +28,8 @@ public class ProductClientImpl implements ProductClient {
                 )
                 .retrieve()
                 .bodyToMono(ProductDetail.class)
-                .timeout(Duration.ofMillis(2000))
+                .retryWhen(Retry.backoff(props.getMaxRetries(), Duration.ofMillis(100)))
+                .onErrorResume(e -> Mono.empty())
                 .block();
     }
 }

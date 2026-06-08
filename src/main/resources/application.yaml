@@ -4,6 +4,8 @@ server:
 clients:
   product-api:
     base-url: http://localhost:3001
+    timeout: 2000
+    retry: 1
     endpoints:
-      similar-ids: /product/{productId}/similarids
       product: /product/{productId}
+      similar-ids: /product/{productId}/similarids

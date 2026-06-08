@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.List;
@@ -26,9 +28,9 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
                                      .build(productId)
                 )
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<String>>() {
-                })
-                .timeout(Duration.ofMillis(2000))
+                .bodyToMono(new ParameterizedTypeReference<List<String>>() {})
+                .retryWhen(Retry.backoff(props.getMaxRetries(), Duration.ofMillis(100)))
+                .onErrorResume(e -> Mono.just(List.of()))
                 .block();
     }
 }

@@ -30,7 +30,7 @@ public class ProductService {
             return List.of();
         }
 
-        return ids.stream()
+        return ids.parallelStream()
                 .map(this::safeGetProduct)
                 .filter(Objects::nonNull)
                 .toList();

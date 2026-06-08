@@ -10,12 +10,13 @@ import org.springframework.stereotype.Component;
 public class ProductApiProperties {
 
     private String baseUrl;
-
+    private int timeout;
+    private int maxRetries;
     private Endpoints endpoints;
 
     @Data
     public static class Endpoints {
-        private String similarIds;
         private String product;
+        private String similarIds;
     }
 }
