@@ -24,7 +24,8 @@ public class ProductService {
         return similarClient.getSimilarIds(productId)
                 .flatMap(id ->
                                  productClient.getProduct(id)
-                                         .onErrorResume(e -> Mono.empty())
+                                         .onErrorResume(e -> Mono.empty()),
+                        10
                 )
                 .collectList();
     }
