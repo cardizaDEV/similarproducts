@@ -1,7 +1,8 @@
 package com.cardiza.similarproducts.client;
 
 import com.cardiza.similarproducts.dto.ProductDetail;
+import reactor.core.publisher.Mono;
 
 public interface ProductClient {
-    ProductDetail getProduct(String productId);
+    Mono<ProductDetail> getProduct(String productId);
 }

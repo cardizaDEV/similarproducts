@@ -11,7 +11,7 @@ public class ProductApiProperties {
 
     private String baseUrl;
     private int timeout;
-    private int maxRetries;
+    private int retry;
     private Endpoints endpoints;
 
     @Data

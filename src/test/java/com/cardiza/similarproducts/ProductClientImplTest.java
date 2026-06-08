@@ -1,45 +1,84 @@
 package com.cardiza.similarproducts;
 
+import com.cardiza.similarproducts.client.impl.ProductClientImpl;
+import com.cardiza.similarproducts.config.ProductApiProperties;
 import com.cardiza.similarproducts.dto.ProductDetail;
-import com.cardiza.similarproducts.client.ProductClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ProductClientTest {
+class ProductClientImplTest {
 
     @Mock
-    private ProductClient productClient;
+    private WebClient webClient;
+
+    @Mock
+    private ProductApiProperties props;
+
+    @Mock
+    private WebClient.RequestHeadersUriSpec uriSpec;
+
+    @Mock
+    private WebClient.RequestHeadersSpec headersSpec;
+
+    @Mock
+    private WebClient.ResponseSpec responseSpec;
+
+    @InjectMocks
+    private ProductClientImpl client;
 
     @Test
-    void getProduct_ok() {
+    void getProduct200() {
         ProductDetail expected = new ProductDetail("1", "prod", 10.0, true);
 
-        when(productClient.getProduct("1")).thenReturn(Mono.just(expected));
+        when(props.getTimeout()).thenReturn(2000);
+        when(props.getRetry()).thenReturn(1);
 
-        ProductDetail result = productClient.getProduct("1").block();
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(java.util.function.Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(ProductDetail.class)).thenReturn(Mono.just(expected));
 
-        assertEquals(expected, result);
-        verify(productClient).getProduct("1");
+        StepVerifier.create(client.getProduct("1"))
+                .expectNext(expected)
+                .verifyComplete();
     }
 
     @Test
-    void getProduct_error() {
-        when(productClient.getProduct("1"))
-                .thenReturn(Mono.error(new RuntimeException("fail")));
+    void getProductEmptyBodyReturnsEmpty() {
+        when(props.getTimeout()).thenReturn(2000);
+        when(props.getRetry()).thenReturn(1);
 
-        ProductDetail result = productClient.getProduct("1")
-                .onErrorReturn((ProductDetail) null)
-                .block();
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(java.util.function.Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
 
-        assertNull(result);
-        verify(productClient).getProduct("1");
+        when(responseSpec.bodyToMono(ProductDetail.class))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(client.getProduct("1"))
+                .verifyComplete();
+    }
+
+    @Test
+    void getProductTimeoutTriggersRetryAndEmpty() {
+        when(props.getTimeout()).thenReturn(1);
+        when(props.getRetry()).thenReturn(1);
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(java.util.function.Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(ProductDetail.class)).thenReturn(Mono.error(new RuntimeException()));
+
+        StepVerifier.create(client.getProduct("1"))
+                .verifyComplete();
     }
 }

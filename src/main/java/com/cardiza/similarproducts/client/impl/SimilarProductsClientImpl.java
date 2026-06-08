@@ -6,8 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
+import reactor.core.publisher.Flux;
 
 import java.time.Duration;
 import java.util.List;
@@ -20,7 +19,7 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
     private final ProductApiProperties props;
 
     @Override
-    public List<String> getSimilarIds(String productId) {
+    public Flux<String> getSimilarIds(String productId) {
         return productWebClient.get()
                 .uri(uriBuilder ->
                              uriBuilder
@@ -29,8 +28,12 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
                 )
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<List<String>>() {})
-                .retryWhen(Retry.backoff(props.getMaxRetries(), Duration.ofMillis(100)))
-                .onErrorResume(e -> Mono.just(List.of()))
-                .block();
+                .timeout(Duration.ofMillis(props.getTimeout()))
+                .retry(props.getRetry())
+                .flatMapMany(list -> {
+                    if (list == null) return Flux.empty();
+                    return Flux.fromIterable(list);
+                })
+                .onErrorResume(e -> Flux.empty());
     }
 }

@@ -1,7 +1,7 @@
 package com.cardiza.similarproducts.client;
 
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 public interface SimilarProductsClient {
-    List<String> getSimilarIds(String productId);
+    Flux<String> getSimilarIds(String productId);
 }

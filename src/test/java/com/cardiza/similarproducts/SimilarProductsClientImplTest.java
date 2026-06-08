@@ -1,47 +1,84 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.client.SimilarProductsClient;
+import com.cardiza.similarproducts.client.impl.SimilarProductsClientImpl;
+import com.cardiza.similarproducts.config.ProductApiProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Flux;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import java.util.List;
+import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class SimilarProductsClientTest {
+class SimilarProductsClientImplTest {
 
-    @Mock
-    private SimilarProductsClient similarClient;
+    @Mock private WebClient webClient;
+    @Mock private ProductApiProperties props;
+
+    @Mock private WebClient.RequestHeadersUriSpec<?> uriSpec;
+    @Mock private WebClient.RequestHeadersSpec<?> headersSpec;
+    @Mock private WebClient.ResponseSpec responseSpec;
+
+    @InjectMocks
+    private SimilarProductsClientImpl client;
 
     @Test
-    void getSimilarIds_ok() {
-        when(similarClient.getSimilarIds("1"))
-                .thenReturn(Flux.just("2", "3"));
+    void getSimilarIds200() {
+        doReturn(2000).when(props).getTimeout();
+        doReturn(1).when(props).getRetry();
 
-        List<String> result = similarClient.getSimilarIds("1")
-                .collectList()
-                .block();
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
 
-        assertEquals(List.of("2", "3"), result);
-        verify(similarClient).getSimilarIds("1");
+        List<String> response = List.of("2", "3");
+
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
+                .thenReturn(Mono.just(response));
+
+        StepVerifier.create(client.getSimilarIds("1"))
+                .expectNext("2", "3")
+                .verifyComplete();
     }
 
     @Test
-    void getSimilarIds_empty_on_error() {
-        when(similarClient.getSimilarIds("1"))
-                .thenReturn(Flux.error(new RuntimeException("fail")));
+    void getSimilarIdsNullList() {
+        doReturn(2000).when(props).getTimeout();
+        doReturn(1).when(props).getRetry();
 
-        List<String> result = similarClient.getSimilarIds("1")
-                .onErrorResume(e -> Flux.empty())
-                .collectList()
-                .block();
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
 
-        assertTrue(result.isEmpty());
-        verify(similarClient).getSimilarIds("1");
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
+                .thenReturn(Mono.justOrEmpty(null));
+
+        StepVerifier.create(client.getSimilarIds("1"))
+                .verifyComplete();
+    }
+
+    @Test
+    void getSimilarIdsExceptionHandledAsEmpty() {
+        doReturn(2000).when(props).getTimeout();
+        doReturn(1).when(props).getRetry();
+
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
+                .thenReturn(Mono.error(new RuntimeException("fail")));
+
+        StepVerifier.create(client.getSimilarIds("1"))
+                .verifyComplete();
     }
 }
