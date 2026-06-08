@@ -4,3 +4,6 @@ server:
 clients:
   product-api:
     base-url: http://localhost:3001
+    endpoints:
+      similar-ids: /product/{productId}/similarids
+      product: /product/{productId}
