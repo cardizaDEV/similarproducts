@@ -2,6 +2,7 @@ package com.cardiza.similarproducts;
 
 import com.cardiza.similarproducts.client.impl.SimilarProductsClientImpl;
 import com.cardiza.similarproducts.config.ProductApiProperties;
+import com.cardiza.similarproducts.exception.ProductNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,15 +16,15 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.function.Function;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class SimilarProductsClientImplTest {
 
     @Mock private WebClient webClient;
     @Mock private ProductApiProperties props;
-
     @Mock private WebClient.RequestHeadersUriSpec<?> uriSpec;
     @Mock private WebClient.RequestHeadersSpec<?> headersSpec;
     @Mock private WebClient.ResponseSpec responseSpec;
@@ -35,15 +36,12 @@ class SimilarProductsClientImplTest {
     void getSimilarIds200() {
         doReturn(2000).when(props).getTimeout();
         doReturn(1).when(props).getRetry();
-
         when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
         when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
         when(headersSpec.retrieve()).thenReturn(responseSpec);
-
-        List<String> response = List.of("2", "3");
-
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
-                .thenReturn(Mono.just(response));
+                .thenReturn(Mono.just(List.of("2", "3")));
 
         StepVerifier.create(client.getSimilarIds("1"))
                 .expectNext("2", "3")
@@ -54,11 +52,10 @@ class SimilarProductsClientImplTest {
     void getSimilarIdsNullList() {
         doReturn(2000).when(props).getTimeout();
         doReturn(1).when(props).getRetry();
-
         when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
         when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
         when(headersSpec.retrieve()).thenReturn(responseSpec);
-
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
                 .thenReturn(Mono.justOrEmpty(null));
 
@@ -67,14 +64,29 @@ class SimilarProductsClientImplTest {
     }
 
     @Test
-    void getSimilarIdsExceptionHandledAsEmpty() {
+    void getSimilarIdsNotFoundPropagates404() {
         doReturn(2000).when(props).getTimeout();
-        doReturn(1).when(props).getRetry();
-
+        doReturn(0).when(props).getRetry();
         when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
         when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
         when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
+                .thenReturn(Mono.error(new ProductNotFoundException("1")));
 
+        StepVerifier.create(client.getSimilarIds("1"))
+                .expectError(ProductNotFoundException.class)
+                .verify();
+    }
+
+    @Test
+    void getSimilarIdsOtherErrorReturnsEmpty() {
+        doReturn(2000).when(props).getTimeout();
+        doReturn(0).when(props).getRetry();
+        when(webClient.get()).thenReturn((WebClient.RequestHeadersUriSpec) uriSpec);
+        when(uriSpec.uri(any(Function.class))).thenReturn(headersSpec);
+        when(headersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.bodyToMono(any(ParameterizedTypeReference.class)))
                 .thenReturn(Mono.error(new RuntimeException("fail")));
 

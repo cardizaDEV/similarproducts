@@ -17,7 +17,8 @@ public class WebClientConfig {
 
         HttpClient httpClient = HttpClient.create()
                 .responseTimeout(Duration.ofMillis(props.getTimeout()))
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getTimeout());
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, props.getTimeout())
+                .option(ChannelOption.SO_KEEPALIVE, true);
 
         return WebClient.builder()
                 .baseUrl(props.getBaseUrl())
