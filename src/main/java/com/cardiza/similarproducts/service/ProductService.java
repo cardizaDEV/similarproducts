@@ -30,7 +30,7 @@ public class ProductService {
                                              if (e instanceof ProductNotFoundException) return Mono.error(e);
                                              return Mono.empty();
                                          }),
-                        10
+                        50
                 )
                 .collectList()
                 .onErrorResume(e -> {
