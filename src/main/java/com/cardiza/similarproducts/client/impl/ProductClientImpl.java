@@ -5,6 +5,7 @@ import com.cardiza.similarproducts.config.ProductApiProperties;
 import com.cardiza.similarproducts.dto.ProductDetail;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -13,7 +14,9 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 
 import static com.cardiza.similarproducts.values.ExceptionMessages.UPSTREAM_ERROR_FOR_PRODUCT;
+import static com.cardiza.similarproducts.values.LogMessages.FAILED_FETCH_PRODUCT_CLIENT;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class ProductClientImpl implements ProductClient {
@@ -43,6 +46,8 @@ public class ProductClientImpl implements ProductClient {
                 .retry(props.getRetry())
                 .onErrorResume(e -> {
                     if (e instanceof ProductNotFoundException) return Mono.error(e);
+                    log.warn(String.format(FAILED_FETCH_PRODUCT_CLIENT, productId,
+                            e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName()));
                     return Mono.empty();
                 });
     }

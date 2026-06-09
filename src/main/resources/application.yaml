@@ -9,3 +9,8 @@ clients:
     endpoints:
       product: /product/{productId}
       similar-ids: /product/{productId}/similarids
+
+logging:
+  level:
+    reactor.netty.http.client.HttpClientConnect: ERROR
+    reactor.netty.channel.FluxReceive: ERROR

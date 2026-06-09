@@ -33,6 +33,12 @@ public class WebClientConfig {
             LoggerFactory.getLogger(WebClientConfig.class).error(String.format(UNEXPECTED_DROPPED_ERROR, e));
         });
 
+        Hooks.onErrorDropped(e -> {
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            if (cause instanceof ReadTimeoutException) return;
+            LoggerFactory.getLogger(WebClientConfig.class).error("Unexpected dropped error", e);
+        });
+
         return WebClient.builder()
                 .baseUrl(props.getBaseUrl())
                 .clientConnector(new ReactorClientHttpConnector(httpClient))

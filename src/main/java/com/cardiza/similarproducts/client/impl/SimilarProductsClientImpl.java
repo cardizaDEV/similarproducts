@@ -4,6 +4,7 @@ import com.cardiza.similarproducts.client.SimilarProductsClient;
 import com.cardiza.similarproducts.config.ProductApiProperties;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,9 @@ import java.time.Duration;
 import java.util.List;
 
 import static com.cardiza.similarproducts.values.ExceptionMessages.UPSTREAM_ERROR_FOR_SIMILAR_IDS;
+import static com.cardiza.similarproducts.values.LogMessages.FAILED_FETCH_SIMILAR_IDS;
 
+@Log4j2
 @Service
 @RequiredArgsConstructor
 public class SimilarProductsClientImpl implements SimilarProductsClient {
@@ -50,6 +53,7 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
                 })
                 .onErrorResume(e -> {
                     if (e instanceof ProductNotFoundException) return Flux.error(e);
+                    log.warn(String.format(FAILED_FETCH_SIMILAR_IDS, productId, e.getMessage()));
                     return Flux.empty();
                 });
     }
