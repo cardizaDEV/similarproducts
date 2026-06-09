@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
@@ -41,8 +40,7 @@ public class ProductClientImpl implements ProductClient {
                 )
                 .bodyToMono(ProductDetail.class)
                 .timeout(Duration.ofMillis(props.getTimeout()))
-                .retryWhen(Retry.backoff(props.getRetry(), Duration.ofMillis(100))
-                        .filter(e -> !(e instanceof ProductNotFoundException)))
+                .retry(props.getRetry())
                 .onErrorResume(e -> {
                     if (e instanceof ProductNotFoundException) return Mono.error(e);
                     return Mono.empty();

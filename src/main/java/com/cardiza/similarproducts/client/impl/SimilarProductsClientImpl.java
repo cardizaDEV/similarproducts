@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.time.Duration;
 import java.util.List;
@@ -44,8 +43,7 @@ public class SimilarProductsClientImpl implements SimilarProductsClient {
                 .bodyToMono(new ParameterizedTypeReference<List<String>>() {
                 })
                 .timeout(Duration.ofMillis(props.getTimeout()))
-                .retryWhen(Retry.backoff(props.getRetry(), Duration.ofMillis(100))
-                        .filter(e -> !(e instanceof ProductNotFoundException)))
+                .retry(props.getRetry())
                 .flatMapMany(list -> {
                     if (list == null) return Flux.empty();
                     return Flux.fromIterable(list);
