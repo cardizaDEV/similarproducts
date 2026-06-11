@@ -1,9 +1,9 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.client.impl.ProductClientImpl;
-import com.cardiza.similarproducts.config.ProductApiProperties;
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.ProductClient;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.config.ProductApiProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,7 +33,7 @@ class ProductClientImplTest {
     private WebClient.ResponseSpec responseSpec;
 
     @InjectMocks
-    private ProductClientImpl client;
+    private ProductClient client;
 
     @Test
     void getProduct200() {

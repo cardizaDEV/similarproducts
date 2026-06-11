@@ -1,4 +1,4 @@
-package com.cardiza.similarproducts.dto;
+package com.cardiza.similarproducts.domain.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

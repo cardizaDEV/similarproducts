@@ -1,6 +1,6 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterAll;

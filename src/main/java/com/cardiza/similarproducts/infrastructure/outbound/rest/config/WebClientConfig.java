@@ -1,7 +1,8 @@
-package com.cardiza.similarproducts.config;
+package com.cardiza.similarproducts.infrastructure.outbound.rest.config;
 
+import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutException;
-import org.slf4j.LoggerFactory;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -10,10 +11,10 @@ import reactor.core.publisher.Hooks;
 import reactor.netty.http.client.HttpClient;
 
 import java.time.Duration;
-import io.netty.channel.ChannelOption;
 
 import static com.cardiza.similarproducts.values.ExceptionMessages.UNEXPECTED_DROPPED_ERROR;
 
+@Log4j2
 @Configuration
 public class WebClientConfig {
 
@@ -30,13 +31,13 @@ public class WebClientConfig {
                         e.getCause() instanceof ReadTimeoutException) {
                 return;
             }
-            LoggerFactory.getLogger(WebClientConfig.class).error(String.format(UNEXPECTED_DROPPED_ERROR, e));
+            log.error(String.format(UNEXPECTED_DROPPED_ERROR, e));
         });
 
         Hooks.onErrorDropped(e -> {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
             if (cause instanceof ReadTimeoutException) return;
-            LoggerFactory.getLogger(WebClientConfig.class).error("Unexpected dropped error", e);
+            log.error(String.format(UNEXPECTED_DROPPED_ERROR, e));
         });
 
         return WebClient.builder()

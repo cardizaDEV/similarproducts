@@ -1,9 +1,11 @@
-package com.cardiza.similarproducts.service;
+package com.cardiza.similarproducts.application.service;
 
-import com.cardiza.similarproducts.client.ProductClient;
-import com.cardiza.similarproducts.client.SimilarProductsClient;
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.application.usecase.ProductsUseCase;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.port.ProductPort;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.port.SimilarProductsPort;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -14,24 +16,19 @@ import static com.cardiza.similarproducts.values.LogMessages.*;
 
 @Log4j2
 @Service
-public class ProductService {
+@RequiredArgsConstructor
+public class ProductsService implements ProductsUseCase {
 
-    private final SimilarProductsClient similarClient;
-    private final ProductClient productClient;
+    private final SimilarProductsPort similarProductsPort;
+    private final ProductPort productPort;
 
-    public ProductService(SimilarProductsClient similarClient,
-                          ProductClient productClient) {
-        this.similarClient = similarClient;
-        this.productClient = productClient;
-    }
-
+    @Override
     public Mono<List<ProductDetail>> getSimilarProducts(String productId) {
         log.debug(String.format(FETCHING_SIMILAR_PRODUCTS, productId));
-        return similarClient.getSimilarIds(productId)
+        return similarProductsPort.getSimilarIds(productId)
                 .distinct()
                 .flatMap(id ->
-                                 productClient.getProduct(id)
-                                         .doOnSuccess(p -> log.debug(String.format(FETCHED_PRODUCT, id)))
+                                 productPort.getProduct(id)
                                          .onErrorResume(e -> {
                                              if (e instanceof ProductNotFoundException) return Mono.error(e);
                                              log.warn(String.format(FAILED_FETCH_PRODUCT, id, e.getMessage()));

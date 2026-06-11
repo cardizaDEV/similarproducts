@@ -1,10 +1,10 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.controller.ProductController;
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.application.service.ProductsService;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.cardiza.similarproducts.exception.GlobalExceptionHandler;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
-import com.cardiza.similarproducts.service.ProductService;
+import com.cardiza.similarproducts.infrastructure.inbound.rest.ProductController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -25,7 +25,7 @@ class ProductControllerTest {
     private WebTestClient webTestClient;
 
     @MockBean
-    private ProductService productService;
+    private ProductsService productService;
 
     @Test
     void getSimilarProducts200() {

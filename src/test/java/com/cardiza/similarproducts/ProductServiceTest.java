@@ -1,10 +1,10 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.client.ProductClient;
-import com.cardiza.similarproducts.client.SimilarProductsClient;
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.application.service.ProductsService;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
-import com.cardiza.similarproducts.service.ProductService;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.ProductClient;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.SimilarProductsClient;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +28,7 @@ class ProductServiceTest {
     private ProductClient productClient;
 
     @InjectMocks
-    private ProductService productService;
+    private ProductsService productService;
 
     private static final String PRODUCT_ID = "1";
 

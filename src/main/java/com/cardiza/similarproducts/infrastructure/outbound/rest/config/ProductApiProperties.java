@@ -1,4 +1,4 @@
-package com.cardiza.similarproducts.config;
+package com.cardiza.similarproducts.infrastructure.outbound.rest.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

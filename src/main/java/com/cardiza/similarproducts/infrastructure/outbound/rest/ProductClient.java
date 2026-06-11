@@ -1,15 +1,16 @@
-package com.cardiza.similarproducts.client.impl;
+package com.cardiza.similarproducts.infrastructure.outbound.rest;
 
-import com.cardiza.similarproducts.client.ProductClient;
-import com.cardiza.similarproducts.config.ProductApiProperties;
-import com.cardiza.similarproducts.dto.ProductDetail;
+import com.cardiza.similarproducts.domain.model.ProductDetail;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.config.ProductApiProperties;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.port.ProductPort;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.util.retry.Retry;
 
 import java.time.Duration;
 
@@ -19,7 +20,7 @@ import static com.cardiza.similarproducts.values.LogMessages.FAILED_FETCH_PRODUC
 @Log4j2
 @Service
 @RequiredArgsConstructor
-public class ProductClientImpl implements ProductClient {
+public class ProductClient implements ProductPort {
 
     private final WebClient productWebClient;
     private final ProductApiProperties props;
@@ -43,7 +44,8 @@ public class ProductClientImpl implements ProductClient {
                 )
                 .bodyToMono(ProductDetail.class)
                 .timeout(Duration.ofMillis(props.getTimeout()))
-                .retry(props.getRetry())
+                .retryWhen(Retry.backoff(props.getRetry(), Duration.ofMillis(100))
+                        .filter(e -> !(e instanceof ProductNotFoundException)))
                 .onErrorResume(e -> {
                     if (e instanceof ProductNotFoundException) return Mono.error(e);
                     log.warn(String.format(FAILED_FETCH_PRODUCT_CLIENT, productId,

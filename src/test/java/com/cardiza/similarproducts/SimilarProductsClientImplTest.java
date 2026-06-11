@@ -1,8 +1,8 @@
 package com.cardiza.similarproducts;
 
-import com.cardiza.similarproducts.client.impl.SimilarProductsClientImpl;
-import com.cardiza.similarproducts.config.ProductApiProperties;
 import com.cardiza.similarproducts.exception.ProductNotFoundException;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.SimilarProductsClient;
+import com.cardiza.similarproducts.infrastructure.outbound.rest.config.ProductApiProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,7 +30,7 @@ class SimilarProductsClientImplTest {
     @Mock private WebClient.ResponseSpec responseSpec;
 
     @InjectMocks
-    private SimilarProductsClientImpl client;
+    private SimilarProductsClient client;
 
     @Test
     void getSimilarIds200() {
