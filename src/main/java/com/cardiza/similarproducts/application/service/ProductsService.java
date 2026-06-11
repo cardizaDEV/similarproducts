@@ -29,6 +29,7 @@ public class ProductsService implements ProductsUseCase {
                 .distinct()
                 .flatMap(id ->
                                  productPort.getProduct(id)
+                                         .doOnSuccess(p -> log.debug(String.format(FETCHED_PRODUCT, id)))
                                          .onErrorResume(e -> {
                                              if (e instanceof ProductNotFoundException) return Mono.error(e);
                                              log.warn(String.format(FAILED_FETCH_PRODUCT, id, e.getMessage()));
